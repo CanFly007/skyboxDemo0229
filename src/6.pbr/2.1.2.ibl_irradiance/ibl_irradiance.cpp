@@ -20,6 +20,7 @@ void processInput(GLFWwindow *window);
 unsigned int loadTexture(const char* path);
 void renderSphere();
 void renderCube();
+
 void GenerateIrradianceMap(GLFWwindow* window, int texID);
 void GeneratePrefilterMap();
 void renderQuad();
@@ -180,16 +181,93 @@ int main()
     
     GenerateIrradianceMap(window, 0);
 
+
+    std::string computerCode;
+    std::ifstream cShaderFile;
+    cShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+    try
+    {
+        cShaderFile.open("compute_brightest.cs");
+        std::stringstream cShaderStream;
+        cShaderStream << cShaderFile.rdbuf();
+        cShaderFile.close();
+        computerCode = cShaderStream.str();
+    }
+    catch (std::ifstream::failure& e)
+    {
+        std::cout << "ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ: " << e.what() << std::endl;
+    }
+    const char* cShaderCode = computerCode.c_str();
+    unsigned int comp = glCreateShader(GL_COMPUTE_SHADER);
+    glShaderSource(comp, 1, &cShaderCode, NULL);
+    glCompileShader(comp);
+    GLint success;
+    GLchar infoLog[1024];
+    glGetProgramiv(comp, GL_LINK_STATUS, &success);
+    if (!success)
+    {
+        glGetProgramInfoLog(comp, 1024, NULL, infoLog);
+        std::cout << "ERROR::PROGRAM_LINKING_ERROR of type: " << infoLog << std::endl;
+    }
+    unsigned int shaderProgram = glCreateProgram();
+    glAttachShader(shaderProgram, comp);
+    glLinkProgram(shaderProgram);
+    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
+    if (!success) {
+        glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
+        std::cout << "ERROR::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
+    }
+
+    
+    // 使用程序
+    glUseProgram(shaderProgram);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
+    glUniform1i(glGetUniformLocation(shaderProgram, "environmentMap"), 0);
+
+    // 创建并绑定SSBO
+    GLuint ssbo;
+    glGenBuffers(1, &ssbo);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(glm::vec4) + sizeof(glm::vec3), NULL, GL_DYNAMIC_DRAW);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo);
+
+    // 运行计算着色器
+    // 假设Cubemap的尺寸为512x512
+    glDispatchCompute(512 / 16, 512 / 16, 1);
+    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
+    // 读取SSBO的数据
+    glm::vec4 brightestColor;
+    glm::vec3 direction;
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
+    void* ptr = glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY);
+    memcpy(&brightestColor, ptr, sizeof(glm::vec4));
+    memcpy(&direction, (char*)ptr + sizeof(glm::vec4), sizeof(glm::vec3));
+    glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+    
+    // 清除资源
+    glDeleteShader(comp); // 着色器不再需要时可以删除
+    glDeleteProgram(shaderProgram); // 不再使用程序时可以删除
+    glDeleteBuffers(1, &ssbo); // 删除SSBO
+
+    // 使用brightestColor和direction设置你的光源
+    glm::vec3 lightPosition = direction; // 根据你的计算方向调整
+    glm::vec3 lightColor = glm::vec3(brightestColor); // 假设亮度已存储在颜色分量中
+
     // initialize static shader uniforms before rendering
     glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
     pbrShader.use();
     pbrShader.setMat4("projection", projection);
 
-    for (unsigned int i = 0; i < sizeof(lightPositions) / sizeof(lightPositions[0]); ++i)
-    {
-        pbrShader.setVec3("lightPositions[" + std::to_string(i) + "]", lightPositions[i]);
-        pbrShader.setVec3("lightColors[" + std::to_string(i) + "]", lightColors[i]);
-    }
+    //for (unsigned int i = 0; i < sizeof(lightPositions) / sizeof(lightPositions[0]); ++i)
+    //{
+    //    pbrShader.setVec3("lightPositions[" + std::to_string(i) + "]", lightPositions[i]);
+    //    pbrShader.setVec3("lightColors[" + std::to_string(i) + "]", lightColors[i]);
+    //}
+
+    pbrShader.setVec3("lightPositions[0]", lightPosition);
+    pbrShader.setVec3("lightColors[0]", lightColor);
 
 
     backgroundShader.use();
