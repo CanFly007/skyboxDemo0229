@@ -48,6 +48,8 @@ unsigned int brdfLUTTexture = -1;
 
 const std::string texturePaths[]
 {
+    "resources/textures/hdr/CloudyEx.jpg",
+    "resources/textures/hdr/blackEx.jpg",
     "resources/textures/hdr/newport_loft.hdr",
     "resources/textures/hdr/Snipper.png",
 };
