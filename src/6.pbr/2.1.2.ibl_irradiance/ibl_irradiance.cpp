@@ -27,20 +27,15 @@ void renderQuad();
 void GenerateBRDFLUTTexture();
 void ComputeBrightest(Shader& objShader);
 
-// settings
 const unsigned int SCR_WIDTH = 1280;
 const unsigned int SCR_HEIGHT = 720;
 
-// camera
-//Camera camera(glm::vec3(3.25f, 4.5f, 26.6f));
-//Camera camera(glm::vec3(-1.92f, 0.88f, 6.94f));
 Camera camera(glm::vec3(-13.0f, 4.0f, 14.0f));
 
 float lastX = 800.0f / 2.0;
 float lastY = 600.0 / 2.0;
 bool firstMouse = true;
 
-// timing
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
@@ -53,8 +48,6 @@ const std::string texturePaths[]
 {
     "resources/textures/hdr/CloudyEx.jpg",
     "resources/textures/hdr/blackEx.jpg",
-    "resources/textures/hdr/newport_loft.hdr",
-    "resources/textures/hdr/Snipper.png",
 };
 
 glm::vec3 lightPosition;
@@ -127,41 +120,17 @@ int main()
     backgroundShader.use();
     backgroundShader.setInt("environmentMap", 0);
 
-    // rusted iron
     unsigned int ironAlbedoMap = loadTexture(FileSystem::getPath("resources/textures/pbr/rusted_iron/albedo.png").c_str());
     unsigned int ironNormalMap = loadTexture(FileSystem::getPath("resources/textures/pbr/rusted_iron/normal.png").c_str());
     unsigned int ironMetallicMap = loadTexture(FileSystem::getPath("resources/textures/pbr/rusted_iron/metallic.png").c_str());
     unsigned int ironRoughnessMap = loadTexture(FileSystem::getPath("resources/textures/pbr/rusted_iron/roughness.png").c_str());
     unsigned int ironAOMap = loadTexture(FileSystem::getPath("resources/textures/pbr/rusted_iron/ao.png").c_str());
 
-    // gold
-    unsigned int goldAlbedoMap = loadTexture(FileSystem::getPath("resources/textures/pbr/gold/albedo.png").c_str());
-    unsigned int goldNormalMap = loadTexture(FileSystem::getPath("resources/textures/pbr/gold/normal.png").c_str());
-    unsigned int goldMetallicMap = loadTexture(FileSystem::getPath("resources/textures/pbr/gold/metallic.png").c_str());
-    unsigned int goldRoughnessMap = loadTexture(FileSystem::getPath("resources/textures/pbr/gold/roughness.png").c_str());
-    unsigned int goldAOMap = loadTexture(FileSystem::getPath("resources/textures/pbr/gold/ao.png").c_str());
-
-    // grass
-    unsigned int grassAlbedoMap = loadTexture(FileSystem::getPath("resources/textures/pbr/grass/albedo.png").c_str());
-    unsigned int grassNormalMap = loadTexture(FileSystem::getPath("resources/textures/pbr/grass/normal.png").c_str());
-    unsigned int grassMetallicMap = loadTexture(FileSystem::getPath("resources/textures/pbr/grass/metallic.png").c_str());
-    unsigned int grassRoughnessMap = loadTexture(FileSystem::getPath("resources/textures/pbr/grass/roughness.png").c_str());
-    unsigned int grassAOMap = loadTexture(FileSystem::getPath("resources/textures/pbr/grass/ao.png").c_str());
-
-    // plastic
     unsigned int plasticAlbedoMap = loadTexture(FileSystem::getPath("resources/textures/pbr/plastic/albedo.png").c_str());
     unsigned int plasticNormalMap = loadTexture(FileSystem::getPath("resources/textures/pbr/plastic/normal.png").c_str());
     unsigned int plasticMetallicMap = loadTexture(FileSystem::getPath("resources/textures/pbr/plastic/metallic.png").c_str());
     unsigned int plasticRoughnessMap = loadTexture(FileSystem::getPath("resources/textures/pbr/plastic/roughness.png").c_str());
     unsigned int plasticAOMap = loadTexture(FileSystem::getPath("resources/textures/pbr/plastic/ao.png").c_str());
-
-    // wall
-    unsigned int wallAlbedoMap = loadTexture(FileSystem::getPath("resources/textures/pbr/wall/albedo.png").c_str());
-    unsigned int wallNormalMap = loadTexture(FileSystem::getPath("resources/textures/pbr/wall/normal.png").c_str());
-    unsigned int wallMetallicMap = loadTexture(FileSystem::getPath("resources/textures/pbr/wall/metallic.png").c_str());
-    unsigned int wallRoughnessMap = loadTexture(FileSystem::getPath("resources/textures/pbr/wall/roughness.png").c_str());
-    unsigned int wallAOMap = loadTexture(FileSystem::getPath("resources/textures/pbr/wall/ao.png").c_str());
-
 
     glm::vec3 lightPositions[] = 
     {
@@ -182,7 +151,6 @@ int main()
     
     GenerateIrradianceMap(window, 0, pbrShader);
 
-    // initialize static shader uniforms before rendering
     glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
     pbrShader.use();
     pbrShader.setMat4("projection", projection);
@@ -294,14 +262,13 @@ void GenerateIrradianceMap(GLFWwindow* window, int texID, Shader& objShader)
     int width, height, nrComponents;
     if (texID>=texturePaths->size())
         return;
-    //float* data = stbi_loadf(FileSystem::getPath("resources/textures/hdr/Snipper.png").c_str(), &width, &height, &nrComponents, 0);
     float* data = stbi_loadf(FileSystem::getPath(texturePaths[texID]).c_str(), &width, &height, &nrComponents, 0);
     unsigned int hdrTexture;
     if (data)
     {
         glGenTextures(1, &hdrTexture);
         glBindTexture(GL_TEXTURE_2D, hdrTexture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, data); // note how we specify the texture's data value to be float
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, data);
         //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -349,7 +316,7 @@ void GenerateIrradianceMap(GLFWwindow* window, int texID, Shader& objShader)
     glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
 
     //2. 
-       //unsigned int irradianceMap;
+    //unsigned int irradianceMap;
     glGenTextures(1, &irradianceMap);
     glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap);
     for (unsigned int i = 0; i < 6; ++i)
@@ -371,7 +338,7 @@ void GenerateIrradianceMap(GLFWwindow* window, int texID, Shader& objShader)
     irradianceShader.setMat4("projection", captureProjection);
     glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
 
-    glViewport(0, 0, 32, 32); // don't forget to configure the viewport to the capture dimensions.
+    glViewport(0, 0, 32, 32);
     glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
     for (unsigned int i = 0; i < 6; ++i)
     {
@@ -409,7 +376,7 @@ void ComputeBrightest(Shader& objShader)
     glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(glm::vec4) + sizeof(glm::vec3), NULL, GL_DYNAMIC_DRAW);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, computeBO);
 
-    // ¼ÙÉèCubemapµÄ³ß´çÎª512x512
+    // Cubemap size 512x512
     glDispatchCompute(512 / 16, 512 / 16, 6);
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
@@ -429,7 +396,6 @@ void ComputeBrightest(Shader& objShader)
 
     std::cout << "lightPosition:\nX: " << lightPosition.x << "\nY: " << lightPosition.y << "\nZ: " << lightPosition.z << std::endl;
     std::cout << "lightColor:\nX: " << lightColor.x << "\nY: " << lightColor.y << "\nZ: " << lightColor.z << std::endl;
-
 
     objShader.use();
     objShader.setVec3("lightPositions[0]", lightPosition);
@@ -516,8 +482,7 @@ void GenerateBRDFLUTTexture()
 
 
 bool key1PressedLastFrame, key2PressedLastFrame;
-// process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
-// ---------------------------------------------------------------------------------------------------------
+
 void processInput(GLFWwindow *window, Shader& objShader)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -549,18 +514,12 @@ void processInput(GLFWwindow *window, Shader& objShader)
     key2PressedLastFrame = key2Pressed;
 }
 
-// glfw: whenever the window size changed (by OS or user resize) this callback function executes
-// ---------------------------------------------------------------------------------------------
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
-    // make sure the viewport matches the new window dimensions; note that width and 
-    // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
 }
 
-
-// glfw: whenever the mouse moves, this callback is called
-// -------------------------------------------------------
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 {
     float xpos = static_cast<float>(xposIn);
@@ -582,15 +541,11 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
     camera.ProcessMouseMovement(xoffset, yoffset);
 }
 
-// glfw: whenever the mouse scroll wheel scrolls, this callback is called
-// ----------------------------------------------------------------------
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
     camera.ProcessMouseScroll(static_cast<float>(yoffset));
 }
 
-// renders (and builds at first invocation) a sphere
-// -------------------------------------------------
 unsigned int sphereVAO = 0;
 GLsizei indexCount;
 void renderSphere()
@@ -686,13 +641,11 @@ void renderSphere()
     glDrawElements(GL_TRIANGLE_STRIP, indexCount, GL_UNSIGNED_INT, 0);
 }
 
-// renderCube() renders a 1x1 3D cube in NDC.
-// -------------------------------------------------
+
 unsigned int cubeVAO = 0;
 unsigned int cubeVBO = 0;
 void renderCube()
 {
-    // initialize (if necessary)
     if (cubeVAO == 0)
     {
         float vertices[] = {
@@ -741,10 +694,10 @@ void renderCube()
         };
         glGenVertexArrays(1, &cubeVAO);
         glGenBuffers(1, &cubeVBO);
-        // fill buffer
+        
         glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
         glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-        // link vertex attributes
+        
         glBindVertexArray(cubeVAO);
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
@@ -755,7 +708,7 @@ void renderCube()
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
     }
-    // render Cube
+    
     glBindVertexArray(cubeVAO);
     glDrawArrays(GL_TRIANGLES, 0, 36);
     glBindVertexArray(0);
@@ -774,7 +727,7 @@ void renderQuad()
              1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
              1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
         };
-        // setup plane VAO
+
         glGenVertexArrays(1, &quadVAO);
         glGenBuffers(1, &quadVBO);
         glBindVertexArray(quadVAO);
