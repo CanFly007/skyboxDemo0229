@@ -165,8 +165,5 @@ foreach(CHAPTER ${CHAPTERS})
 		create_project_from_sources(${CHAPTER} ${DEMO})
     endforeach(DEMO)
 endforeach(CHAPTER)
-foreach(GUEST_ARTICLE ${GUEST_ARTICLES})
-	create_project_from_sources(${GUEST_ARTICLE} "")
-endforeach(GUEST_ARTICLE)
 
 include_directories(${CMAKE_SOURCE_DIR}/includes)
