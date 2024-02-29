@@ -16,15 +16,16 @@
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
-void processInput(GLFWwindow *window);
+void processInput(GLFWwindow* window, Shader&);
 unsigned int loadTexture(const char* path);
 void renderSphere();
 void renderCube();
 
-void GenerateIrradianceMap(GLFWwindow* window, int texID);
+void GenerateIrradianceMap(GLFWwindow* window, int texID, Shader& objShader);
 void GeneratePrefilterMap();
 void renderQuad();
 void GenerateBRDFLUTTexture();
+void ComputeBrightest(Shader& objShader);
 
 // settings
 const unsigned int SCR_WIDTH = 1280;
@@ -50,6 +51,10 @@ const std::string texturePaths[]
     "resources/textures/hdr/newport_loft.hdr",
     "resources/textures/hdr/Snipper.png",
 };
+
+glm::vec3 lightPosition;
+glm::vec3 lightColor;
+
 
 glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
 glm::mat4 captureViews[] =
@@ -179,81 +184,7 @@ int main()
 
     stbi_set_flip_vertically_on_load(true);
     
-    GenerateIrradianceMap(window, 0);
-
-
-    std::string computerCode;
-    std::ifstream cShaderFile;
-    cShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-    try
-    {
-        cShaderFile.open("compute_brightest.cs");
-        std::stringstream cShaderStream;
-        cShaderStream << cShaderFile.rdbuf();
-        cShaderFile.close();
-        computerCode = cShaderStream.str();
-    }
-    catch (std::ifstream::failure& e)
-    {
-        std::cout << "ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ: " << e.what() << std::endl;
-    }
-    const char* cShaderCode = computerCode.c_str();
-    unsigned int comp = glCreateShader(GL_COMPUTE_SHADER);
-    glShaderSource(comp, 1, &cShaderCode, NULL);
-    glCompileShader(comp);
-    GLint success;
-    GLchar infoLog[1024];
-    glGetProgramiv(comp, GL_LINK_STATUS, &success);
-    if (!success)
-    {
-        glGetProgramInfoLog(comp, 1024, NULL, infoLog);
-        std::cout << "ERROR::PROGRAM_LINKING_ERROR of type: " << infoLog << std::endl;
-    }
-    unsigned int shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, comp);
-    glLinkProgram(shaderProgram);
-    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-    if (!success) {
-        glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-        std::cout << "ERROR::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
-    }
-
-    
-    // 使用程序
-    glUseProgram(shaderProgram);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
-    glUniform1i(glGetUniformLocation(shaderProgram, "environmentMap"), 0);
-
-    // 创建并绑定SSBO
-    GLuint ssbo;
-    glGenBuffers(1, &ssbo);
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
-    glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(glm::vec4) + sizeof(glm::vec3), NULL, GL_DYNAMIC_DRAW);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo);
-
-    // 运行计算着色器
-    // 假设Cubemap的尺寸为512x512
-    glDispatchCompute(512 / 16, 512 / 16, 1);
-    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-
-    // 读取SSBO的数据
-    glm::vec4 brightestColor;
-    glm::vec3 direction;
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
-    void* ptr = glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY);
-    memcpy(&brightestColor, ptr, sizeof(glm::vec4));
-    memcpy(&direction, (char*)ptr + sizeof(glm::vec4), sizeof(glm::vec3));
-    glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
-    
-    // 清除资源
-    glDeleteShader(comp); // 着色器不再需要时可以删除
-    glDeleteProgram(shaderProgram); // 不再使用程序时可以删除
-    glDeleteBuffers(1, &ssbo); // 删除SSBO
-
-    // 使用brightestColor和direction设置你的光源
-    glm::vec3 lightPosition = direction; // 根据你的计算方向调整
-    glm::vec3 lightColor = glm::vec3(brightestColor); // 假设亮度已存储在颜色分量中
+    GenerateIrradianceMap(window, 0, pbrShader);
 
     // initialize static shader uniforms before rendering
     glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
@@ -266,17 +197,9 @@ int main()
     //    pbrShader.setVec3("lightColors[" + std::to_string(i) + "]", lightColors[i]);
     //}
 
-    pbrShader.setVec3("lightPositions[0]", lightPosition);
-    pbrShader.setVec3("lightColors[0]", lightColor);
-
 
     backgroundShader.use();
     backgroundShader.setMat4("projection", projection);
-
-    //// then before rendering, configure the viewport to the original framebuffer's screen dimensions
-    //int scrWidth, scrHeight;
-    //glfwGetFramebufferSize(window, &scrWidth, &scrHeight);
-    //glViewport(0, 0, scrWidth, scrHeight);
 
     // render loop
     while (!glfwWindowShouldClose(window))
@@ -285,7 +208,7 @@ int main()
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
-        processInput(window);
+        processInput(window, pbrShader);
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -330,7 +253,7 @@ int main()
         //renderSphere();
 
 
-                // rusted iron
+        // rusted iron
         glActiveTexture(GL_TEXTURE3);
         glBindTexture(GL_TEXTURE_2D, ironAlbedoMap);
         glActiveTexture(GL_TEXTURE4);
@@ -451,7 +374,7 @@ int main()
     return 0;
 }
 
-void GenerateIrradianceMap(GLFWwindow* window, int texID)
+void GenerateIrradianceMap(GLFWwindow* window, int texID, Shader& objShader)
 {
     Shader equirectangularToCubemapShader("2.1.2.cubemap.vs", "2.1.2.equirectangular_to_cubemap.fs");
     Shader irradianceShader("2.1.2.cubemap.vs", "2.1.2.irradiance_convolution.fs");
@@ -466,7 +389,6 @@ void GenerateIrradianceMap(GLFWwindow* window, int texID)
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 512, 512);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, captureRBO);
 
-    std::cout << "generate irradiance map" << std::endl;
     //1.hdrTexture(equirectangularMap in shader) transfer to envCubemap
     int width, height, nrComponents;
     if (texID>=texturePaths->size())
@@ -564,9 +486,48 @@ void GenerateIrradianceMap(GLFWwindow* window, int texID)
     GeneratePrefilterMap();
     GenerateBRDFLUTTexture();
 
+    ComputeBrightest(objShader);
+
     int scrWidth, scrHeight;
     glfwGetFramebufferSize(window, &scrWidth, &scrHeight);
     glViewport(0, 0, scrWidth, scrHeight);
+}
+
+void ComputeBrightest(Shader& objShader)
+{
+    Shader computeShader("compute_brightest.cs");
+
+    computeShader.use();
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
+    computeShader.setInt("environmentMap", 0);
+
+    GLuint ssbo;
+    glGenBuffers(1, &ssbo);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(glm::vec4) + sizeof(glm::vec3), NULL, GL_DYNAMIC_DRAW);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo);
+
+    // 假设Cubemap的尺寸为512x512
+    glDispatchCompute(512 / 16, 512 / 16, 1);
+    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
+    glm::vec4 brightestColor;
+    glm::vec3 direction;
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
+    void* ptr = glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY);
+    memcpy(&brightestColor, ptr, sizeof(glm::vec4));
+    memcpy(&direction, (char*)ptr + sizeof(glm::vec4), sizeof(glm::vec3));
+    glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+
+    glDeleteBuffers(1, &ssbo);
+
+    lightPosition = direction;
+    lightColor = glm::vec3(brightestColor);    
+
+    objShader.use();
+    objShader.setVec3("lightPositions[0]", lightPosition);
+    objShader.setVec3("lightColors[0]", lightColor);
 }
 
 void GeneratePrefilterMap()
@@ -650,7 +611,7 @@ void GenerateBRDFLUTTexture()
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 // ---------------------------------------------------------------------------------------------------------
-void processInput(GLFWwindow *window)
+void processInput(GLFWwindow *window, Shader& objShader)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
@@ -667,12 +628,12 @@ void processInput(GLFWwindow *window)
     if (glfwGetKey(window, GLFW_KEY_1))
     {
         std::cout << "enter 1" << std::endl;
-        GenerateIrradianceMap(window, 0);
+        GenerateIrradianceMap(window, 0, objShader);
     }
     if (glfwGetKey(window, GLFW_KEY_2))
     {
         std::cout << "enter 2" << std::endl;
-        GenerateIrradianceMap(window, 1);
+        GenerateIrradianceMap(window, 1, objShader);
     }
 }
 
