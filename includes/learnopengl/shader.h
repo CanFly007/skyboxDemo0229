@@ -198,7 +198,7 @@ private:
     {
         GLint success;
         GLchar infoLog[1024];
-        if(type != "PROGRAM" || type != "COMPUTE")
+        if(type != "PROGRAM") //mac bug  || type != "COMPUTE"
         {
             glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
             if(!success)
