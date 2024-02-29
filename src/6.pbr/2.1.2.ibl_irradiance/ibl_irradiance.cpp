@@ -33,7 +33,9 @@ const unsigned int SCR_HEIGHT = 720;
 
 // camera
 //Camera camera(glm::vec3(3.25f, 4.5f, 26.6f));
-Camera camera(glm::vec3(-1.92f, 0.88f, 6.94f));
+//Camera camera(glm::vec3(-1.92f, 0.88f, 6.94f));
+Camera camera(glm::vec3(-13.0f, 4.0f, 14.0f));
+
 float lastX = 800.0f / 2.0;
 float lastY = 600.0 / 2.0;
 bool firstMouse = true;
@@ -195,6 +197,8 @@ int main()
     backgroundShader.use();
     backgroundShader.setMat4("projection", projection);
 
+    Model teaportModel(FileSystem::getPath("resources/objects/teaport.obj"));
+
     // render loop
     while (!glfwWindowShouldClose(window))
     {
@@ -206,11 +210,6 @@ int main()
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-
-
-
-
 
         pbrShader.use();
         glm::mat4 model = glm::mat4(1.0f);
@@ -229,25 +228,6 @@ int main()
         glBindTexture(GL_TEXTURE_2D, brdfLUTTexture);
 
 
-        ////// rusted iron
-        //glActiveTexture(GL_TEXTURE3);
-        //glBindTexture(GL_TEXTURE_2D, ironAlbedoMap);
-        //glActiveTexture(GL_TEXTURE4);
-        //glBindTexture(GL_TEXTURE_2D, ironNormalMap);
-        //glActiveTexture(GL_TEXTURE5);
-        //glBindTexture(GL_TEXTURE_2D, ironMetallicMap);
-        //glActiveTexture(GL_TEXTURE6);
-        //glBindTexture(GL_TEXTURE_2D, ironRoughnessMap);
-        //glActiveTexture(GL_TEXTURE7);
-        //glBindTexture(GL_TEXTURE_2D, ironAOMap);
-        //model = glm::mat4(1.0f);
-        //model = glm::translate(model, glm::vec3(-5.0, 0.0, 2.0));
-        //pbrShader.setMat4("model", model);
-        //pbrShader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
-        //renderSphere();
-
-
-        // rusted iron
         glActiveTexture(GL_TEXTURE3);
         glBindTexture(GL_TEXTURE_2D, ironAlbedoMap);
         glActiveTexture(GL_TEXTURE4);
@@ -260,48 +240,11 @@ int main()
         glBindTexture(GL_TEXTURE_2D, ironAOMap);
 
         model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(-5.0, 0.0, 2.0));
+        model = glm::translate(model, glm::vec3(-8.0, 0.0, 2.0));
         pbrShader.setMat4("model", model);
         pbrShader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
-        renderSphere();
+        teaportModel.Draw(pbrShader);
 
-        // gold
-        glActiveTexture(GL_TEXTURE3);
-        glBindTexture(GL_TEXTURE_2D, goldAlbedoMap);
-        glActiveTexture(GL_TEXTURE4);
-        glBindTexture(GL_TEXTURE_2D, goldNormalMap);
-        glActiveTexture(GL_TEXTURE5);
-        glBindTexture(GL_TEXTURE_2D, goldMetallicMap);
-        glActiveTexture(GL_TEXTURE6);
-        glBindTexture(GL_TEXTURE_2D, goldRoughnessMap);
-        glActiveTexture(GL_TEXTURE7);
-        glBindTexture(GL_TEXTURE_2D, goldAOMap);
-
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(-3.0, 0.0, 2.0));
-        pbrShader.setMat4("model", model);
-        pbrShader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
-        renderSphere();
-
-        // grass
-        glActiveTexture(GL_TEXTURE3);
-        glBindTexture(GL_TEXTURE_2D, grassAlbedoMap);
-        glActiveTexture(GL_TEXTURE4);
-        glBindTexture(GL_TEXTURE_2D, grassNormalMap);
-        glActiveTexture(GL_TEXTURE5);
-        glBindTexture(GL_TEXTURE_2D, grassMetallicMap);
-        glActiveTexture(GL_TEXTURE6);
-        glBindTexture(GL_TEXTURE_2D, grassRoughnessMap);
-        glActiveTexture(GL_TEXTURE7);
-        glBindTexture(GL_TEXTURE_2D, grassAOMap);
-
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(-1.0, 0.0, 2.0));
-        pbrShader.setMat4("model", model);
-        pbrShader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
-        renderSphere();
-
-        // plastic
         glActiveTexture(GL_TEXTURE3);
         glBindTexture(GL_TEXTURE_2D, plasticAlbedoMap);
         glActiveTexture(GL_TEXTURE4);
@@ -314,46 +257,10 @@ int main()
         glBindTexture(GL_TEXTURE_2D, plasticAOMap);
 
         model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(1.0, 0.0, 2.0));
+        model = glm::translate(model, glm::vec3(8.0, 0.0, 2.0));
         pbrShader.setMat4("model", model);
         pbrShader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
-        renderSphere();
-
-        // wall
-        glActiveTexture(GL_TEXTURE3);
-        glBindTexture(GL_TEXTURE_2D, wallAlbedoMap);
-        glActiveTexture(GL_TEXTURE4);
-        glBindTexture(GL_TEXTURE_2D, wallNormalMap);
-        glActiveTexture(GL_TEXTURE5);
-        glBindTexture(GL_TEXTURE_2D, wallMetallicMap);
-        glActiveTexture(GL_TEXTURE6);
-        glBindTexture(GL_TEXTURE_2D, wallRoughnessMap);
-        glActiveTexture(GL_TEXTURE7);
-        glBindTexture(GL_TEXTURE_2D, wallAOMap);
-
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(3.0, 0.0, 2.0));
-        pbrShader.setMat4("model", model);
-        pbrShader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
-        renderSphere();
-
-
-
-        //for (unsigned int i = 0; i < sizeof(lightPositions) / sizeof(lightPositions[0]); ++i)
-        //{
-        //    glm::vec3 newPos = lightPositions[i];// +glm::vec3(sin(glfwGetTime() * 5.0) * 5.0, 0.0, 0.0);
-        //    //newPos = lightPositions[i];
-        //    pbrShader.setVec3("lightPositions[" + std::to_string(i) + "]", newPos);
-        //    pbrShader.setVec3("lightColors[" + std::to_string(i) + "]", lightColors[i]);
-
-        //    model = glm::mat4(1.0f);
-        //    model = glm::translate(model, newPos);
-        //    model = glm::scale(model, glm::vec3(0.5f));
-        //    pbrShader.setMat4("model", model);
-        //    pbrShader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
-        //    renderSphere();
-        //}
-
+        teaportModel.Draw(pbrShader);
 
         backgroundShader.use();
         backgroundShader.setMat4("view", view);
@@ -480,7 +387,7 @@ void GenerateIrradianceMap(GLFWwindow* window, int texID, Shader& objShader)
     GeneratePrefilterMap();
     GenerateBRDFLUTTexture();
 
-    ComputeBrightest(objShader);
+    //ComputeBrightest(objShader);
 
     int scrWidth, scrHeight;
     glfwGetFramebufferSize(window, &scrWidth, &scrHeight);
@@ -518,6 +425,7 @@ void ComputeBrightest(Shader& objShader)
 
     lightPosition = direction;
     lightColor = glm::vec3(brightestColor);
+    lightColor = glm::vec3(lightColor.x * 200, lightColor.y * 200, lightColor.z * 200);
 
     std::cout << "lightPosition:\nX: " << lightPosition.x << "\nY: " << lightPosition.y << "\nZ: " << lightPosition.z << std::endl;
     std::cout << "lightColor:\nX: " << lightColor.x << "\nY: " << lightColor.y << "\nZ: " << lightColor.z << std::endl;
@@ -607,6 +515,7 @@ void GenerateBRDFLUTTexture()
 }
 
 
+bool key1PressedLastFrame, key2PressedLastFrame;
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 // ---------------------------------------------------------------------------------------------------------
 void processInput(GLFWwindow *window, Shader& objShader)
@@ -623,16 +532,21 @@ void processInput(GLFWwindow *window, Shader& objShader)
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
 		camera.ProcessKeyboard(RIGHT, deltaTime);
 
-    if (glfwGetKey(window, GLFW_KEY_1))
+    bool key1Pressed = glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS;
+    if (key1Pressed && !key1PressedLastFrame)
     {
         std::cout << "enter 1" << std::endl;
         GenerateIrradianceMap(window, 0, objShader);
     }
-    if (glfwGetKey(window, GLFW_KEY_2))
+    key1PressedLastFrame = key1Pressed;
+
+    bool key2Pressed = glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS;
+    if (key2Pressed && !key2PressedLastFrame)
     {
         std::cout << "enter 2" << std::endl;
         GenerateIrradianceMap(window, 1, objShader);
     }
+    key2PressedLastFrame = key2Pressed;
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes

@@ -71,10 +71,13 @@ void main()
     }
     barrier();
 
-    if (gl_LocalInvocationIndex == 0 && sharedMaxIntensity > brightestSpot.a) 
+    if (gl_LocalInvocationIndex == 0)
     {
-        brightestSpot = sharedColor;
-        brightestSpot.a = sharedMaxIntensity;
-        direction = sharedDir;
+        if (sharedMaxIntensity > brightestSpot.a)
+        {
+            brightestSpot = sharedColor;
+            brightestSpot.a = sharedMaxIntensity;
+            direction = sharedDir;
+        }
     }
 }
