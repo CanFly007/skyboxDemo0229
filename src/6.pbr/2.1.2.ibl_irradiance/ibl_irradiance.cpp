@@ -46,8 +46,8 @@ unsigned int brdfLUTTexture = -1;
 
 const std::string texturePaths[]
 {
-    "resources/textures/hdr/CloudyEx.jpg",
-    "resources/textures/hdr/blackEx.jpg",
+    "resources/textures/skybox/CloudyEx.jpg",
+    "resources/textures/skybox/blackEx.jpg",
 };
 
 glm::vec3 lightPosition;
@@ -120,17 +120,17 @@ int main()
     backgroundShader.use();
     backgroundShader.setInt("environmentMap", 0);
 
-    unsigned int ironAlbedoMap = loadTexture(FileSystem::getPath("resources/textures/pbr/rusted_iron/albedo.png").c_str());
-    unsigned int ironNormalMap = loadTexture(FileSystem::getPath("resources/textures/pbr/rusted_iron/normal.png").c_str());
-    unsigned int ironMetallicMap = loadTexture(FileSystem::getPath("resources/textures/pbr/rusted_iron/metallic.png").c_str());
-    unsigned int ironRoughnessMap = loadTexture(FileSystem::getPath("resources/textures/pbr/rusted_iron/roughness.png").c_str());
-    unsigned int ironAOMap = loadTexture(FileSystem::getPath("resources/textures/pbr/rusted_iron/ao.png").c_str());
+    unsigned int ironAlbedoMap = loadTexture(FileSystem::getPath("resources/textures/rusted_iron/albedo.png").c_str());
+    unsigned int ironNormalMap = loadTexture(FileSystem::getPath("resources/textures/rusted_iron/normal.png").c_str());
+    unsigned int ironMetallicMap = loadTexture(FileSystem::getPath("resources/textures/rusted_iron/metallic.png").c_str());
+    unsigned int ironRoughnessMap = loadTexture(FileSystem::getPath("resources/textures/rusted_iron/roughness.png").c_str());
+    unsigned int ironAOMap = loadTexture(FileSystem::getPath("resources/textures/rusted_iron/ao.png").c_str());
 
-    unsigned int plasticAlbedoMap = loadTexture(FileSystem::getPath("resources/textures/pbr/plastic/albedo.png").c_str());
-    unsigned int plasticNormalMap = loadTexture(FileSystem::getPath("resources/textures/pbr/plastic/normal.png").c_str());
-    unsigned int plasticMetallicMap = loadTexture(FileSystem::getPath("resources/textures/pbr/plastic/metallic.png").c_str());
-    unsigned int plasticRoughnessMap = loadTexture(FileSystem::getPath("resources/textures/pbr/plastic/roughness.png").c_str());
-    unsigned int plasticAOMap = loadTexture(FileSystem::getPath("resources/textures/pbr/plastic/ao.png").c_str());
+    unsigned int plasticAlbedoMap = loadTexture(FileSystem::getPath("resources/textures/plastic/albedo.png").c_str());
+    unsigned int plasticNormalMap = loadTexture(FileSystem::getPath("resources/textures/plastic/normal.png").c_str());
+    unsigned int plasticMetallicMap = loadTexture(FileSystem::getPath("resources/textures/plastic/metallic.png").c_str());
+    unsigned int plasticRoughnessMap = loadTexture(FileSystem::getPath("resources/textures/plastic/roughness.png").c_str());
+    unsigned int plasticAOMap = loadTexture(FileSystem::getPath("resources/textures/plastic/ao.png").c_str());
 
     glm::vec3 lightPositions[] = 
     {
@@ -165,7 +165,7 @@ int main()
     backgroundShader.use();
     backgroundShader.setMat4("projection", projection);
 
-    Model teaportModel(FileSystem::getPath("resources/objects/teaport.obj"));
+    Model teaportModel(FileSystem::getPath("resources/teaport.obj"));
 
     // render loop
     while (!glfwWindowShouldClose(window))
