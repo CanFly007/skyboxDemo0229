@@ -77,6 +77,7 @@ function(create_project_from_sources chapter demo)
             "src/${chapter}/${demo}/*.tes"
             "src/${chapter}/${demo}/*.gs"
             "src/${chapter}/${demo}/*.cs"
+            "src/${chapter}/${demo}/*.compute"
     )
 	if (demo STREQUAL "")
 		SET(replaced "")
@@ -104,6 +105,7 @@ function(create_project_from_sources chapter demo)
              "src/${chapter}/${demo}/*.tes"
              "src/${chapter}/${demo}/*.gs"
              "src/${chapter}/${demo}/*.cs"
+             "src/${chapter}/${demo}/*.compute"
     )
 	# copy dlls
 	file(GLOB DLLS "dlls/*.dll")

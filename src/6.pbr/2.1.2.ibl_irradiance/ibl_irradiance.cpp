@@ -32,7 +32,8 @@ const unsigned int SCR_WIDTH = 1280;
 const unsigned int SCR_HEIGHT = 720;
 
 // camera
-Camera camera(glm::vec3(3.25f, 4.5f, 26.6f));
+//Camera camera(glm::vec3(3.25f, 4.5f, 26.6f));
+Camera camera(glm::vec3(-1.92f, 0.88f, 6.94f));
 float lastX = 800.0f / 2.0;
 float lastY = 600.0 / 2.0;
 bool firstMouse = true;
@@ -108,9 +109,6 @@ int main()
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
     Shader pbrShader("2.1.2.pbr.vs", "2.1.2.pbr.fs");
-    //Shader equirectangularToCubemapShader("2.1.2.cubemap.vs", "2.1.2.equirectangular_to_cubemap.fs");
-    //Shader irradianceShader("2.1.2.cubemap.vs", "2.1.2.irradiance_convolution.fs");
-
     Shader backgroundShader("2.1.2.background.vs", "2.1.2.background.fs");
 
     pbrShader.use();
@@ -123,12 +121,6 @@ int main()
     pbrShader.setInt("metallicMap", 5);
     pbrShader.setInt("roughnessMap", 6);
     pbrShader.setInt("aoMap", 7);
-
-    //pbrShader.setInt("albedoMap", 1);
-    //pbrShader.setInt("normalMap", 2);
-    //pbrShader.setInt("metallicMap", 3);
-    //pbrShader.setInt("roughnessMap", 4);
-    //pbrShader.setInt("aoMap", 5);
 
     backgroundShader.use();
     backgroundShader.setInt("environmentMap", 0);
@@ -497,35 +489,39 @@ void GenerateIrradianceMap(GLFWwindow* window, int texID, Shader& objShader)
 
 void ComputeBrightest(Shader& objShader)
 {
-    Shader computeShader("compute_brightest.cs");
+    Shader computeShader("find_brightest.compute");
 
     computeShader.use();
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
     computeShader.setInt("environmentMap", 0);
 
-    GLuint ssbo;
-    glGenBuffers(1, &ssbo);
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
+    GLuint computeBO;
+    glGenBuffers(1, &computeBO);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, computeBO);
     glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(glm::vec4) + sizeof(glm::vec3), NULL, GL_DYNAMIC_DRAW);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, computeBO);
 
     // ¼ÙÉèCubemapµÄ³ß´çÎª512x512
-    glDispatchCompute(512 / 16, 512 / 16, 1);
+    glDispatchCompute(512 / 16, 512 / 16, 6);
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
     glm::vec4 brightestColor;
     glm::vec3 direction;
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, computeBO);
     void* ptr = glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY);
     memcpy(&brightestColor, ptr, sizeof(glm::vec4));
     memcpy(&direction, (char*)ptr + sizeof(glm::vec4), sizeof(glm::vec3));
     glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 
-    glDeleteBuffers(1, &ssbo);
+    glDeleteBuffers(1, &computeBO);
 
     lightPosition = direction;
-    lightColor = glm::vec3(brightestColor);    
+    lightColor = glm::vec3(brightestColor);
+
+    std::cout << "lightPosition:\nX: " << lightPosition.x << "\nY: " << lightPosition.y << "\nZ: " << lightPosition.z << std::endl;
+    std::cout << "lightColor:\nX: " << lightColor.x << "\nY: " << lightColor.y << "\nZ: " << lightColor.z << std::endl;
+
 
     objShader.use();
     objShader.setVec3("lightPositions[0]", lightPosition);
