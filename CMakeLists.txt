@@ -75,11 +75,11 @@ set(LIBS ${LIBS} STB_IMAGE GLAD)
 # SkyboxDemoTest
 
 file(GLOB SOURCE
-    "src/6.pbr/2.1.2.ibl_irradiance/*.h"
-    "src/6.pbr/2.1.2.ibl_irradiance/*.cpp"
-    "src/6.pbr/2.1.2.ibl_irradiance/*.vs"
-    "src/6.pbr/2.1.2.ibl_irradiance/*.fs"
-    "src/6.pbr/2.1.2.ibl_irradiance/*.compute"
+    "src/skyboxDemo/*.h"
+    "src/skyboxDemo/*.cpp"
+    "src/skyboxDemo/*.vs"
+    "src/skyboxDemo/*.fs"
+    "src/skyboxDemo/*.compute"
 )
 add_executable(SkyboxDemoTest ${SOURCE})
 target_link_libraries(SkyboxDemoTest ${LIBS})
@@ -101,9 +101,9 @@ elseif(APPLE)
 endif(WIN32)
 
 file(GLOB SHADERS
-    "src/6.pbr/2.1.2.ibl_irradiance/*.vs"
-    "src/6.pbr/2.1.2.ibl_irradiance/*.fs"
-    "src/6.pbr/2.1.2.ibl_irradiance/*.compute"
+    "src/skyboxDemo/*.vs"
+    "src/skyboxDemo/*.fs"
+    "src/skyboxDemo/*.compute"
 )
 
 file(GLOB DLLS "dlls/*.dll")
