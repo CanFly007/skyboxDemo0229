@@ -8,7 +8,7 @@
 #include <glm/glm.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
-#include <learnopengl/assimp_glm_helpers.h>
+#include <Utils/assimp_glm_helpers.h>
 
 struct KeyPosition
 {
