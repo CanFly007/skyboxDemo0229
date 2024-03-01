@@ -133,6 +133,8 @@ int main()
     unsigned int plasticRoughnessMap = loadTexture(FileSystem::getPath("resources/textures/plastic/roughness.png").c_str());
     unsigned int plasticAOMap = loadTexture(FileSystem::getPath("resources/textures/plastic/ao.png").c_str());
 
+    auto ss = FileSystem::getFilesWithExtension("resources/textures/skybox");
+
     glm::vec3 lightPositions[] = 
     {
         glm::vec3(-10.0f,  10.0f, 10.0f),
