@@ -101,8 +101,8 @@ int main()
     glDepthFunc(GL_LEQUAL);
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
-    Shader pbrShader("2.1.2.pbr.vs", "2.1.2.pbr.fs");
-    Shader backgroundShader("2.1.2.background.vs", "2.1.2.background.fs");
+    Shader pbrShader("pbr.vs", "pbr.fs");
+    Shader backgroundShader("background.vs", "background.fs");
 
     pbrShader.use();
     pbrShader.setInt("irradianceMap", 0);
@@ -246,8 +246,8 @@ int main()
 
 void GenerateIrradianceMap(GLFWwindow* window, int texID, Shader& objShader)
 {
-    Shader equirectangularToCubemapShader("2.1.2.cubemap.vs", "2.1.2.equirectangular_to_cubemap.fs");
-    Shader irradianceShader("2.1.2.cubemap.vs", "2.1.2.irradiance_convolution.fs");
+    Shader equirectangularToCubemapShader("cubemap.vs", "equirectangular_to_cubemap.fs");
+    Shader irradianceShader("cubemap.vs", "irradiance_convolution.fs");
 
     //unsigned int captureFBO;
     //unsigned int captureRBO;
@@ -404,7 +404,7 @@ void ComputeBrightest(Shader& objShader)
 
 void GeneratePrefilterMap()
 {
-    Shader prefilterShader("2.1.2.cubemap.vs", "2.2.2.prefilter.fs");
+    Shader prefilterShader("cubemap.vs", "prefilter.fs");
 
     //unsigned int prefilterMap;
     glGenTextures(1, &prefilterMap);
@@ -454,7 +454,7 @@ void GeneratePrefilterMap()
 
 void GenerateBRDFLUTTexture()
 {
-    Shader brdfShader("2.2.2.brdf.vs", "2.2.2.brdf.fs");
+    Shader brdfShader("brdf.vs", "brdf.fs");
 
     //unsigned int brdfLUTTexture;
     glGenTextures(1, &brdfLUTTexture);
