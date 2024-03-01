@@ -44,11 +44,14 @@ unsigned int envCubemap = -1;
 unsigned int prefilterMap = -1;
 unsigned int brdfLUTTexture = -1;
 
-const std::string texturePaths[]
-{
-    "resources/textures/skybox/CloudyEx.jpg",
-    "resources/textures/skybox/blackEx.jpg",
-};
+//const std::string texturePaths[]
+//{
+//    "resources/textures/skybox/CloudyEx.jpg",
+//    "resources/textures/skybox/blackEx.jpg",
+//};
+
+std::vector<std::string> texturePaths;
+int g_currentTextureIndex = 0;
 
 glm::vec3 lightPosition;
 glm::vec3 lightColor;
@@ -133,7 +136,8 @@ int main()
     unsigned int plasticRoughnessMap = loadTexture(FileSystem::getPath("resources/textures/plastic/roughness.png").c_str());
     unsigned int plasticAOMap = loadTexture(FileSystem::getPath("resources/textures/plastic/ao.png").c_str());
 
-    auto ss = FileSystem::getFilesWithExtension("resources/textures/skybox");
+    texturePaths = FileSystem::getFilesWithExtension("resources/textures/skybox");
+    g_currentTextureIndex = 0;
 
     glm::vec3 lightPositions[] = 
     {
@@ -152,7 +156,7 @@ int main()
 
     stbi_set_flip_vertically_on_load(true);
     
-    GenerateIrradianceMap(window, 0, pbrShader);
+    GenerateIrradianceMap(window, g_currentTextureIndex, pbrShader);
 
     glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
     pbrShader.use();
@@ -263,8 +267,6 @@ void GenerateIrradianceMap(GLFWwindow* window, int texID, Shader& objShader)
 
     //1.hdrTexture(equirectangularMap in shader) transfer to envCubemap
     int width, height, nrComponents;
-    if (texID>=texturePaths->size())
-        return;
     float* data = stbi_loadf(FileSystem::getPath(texturePaths[texID]).c_str(), &width, &height, &nrComponents, 0);
     unsigned int hdrTexture;
     if (data)
@@ -362,6 +364,7 @@ void GenerateIrradianceMap(GLFWwindow* window, int texID, Shader& objShader)
     int scrWidth, scrHeight;
     glfwGetFramebufferSize(window, &scrWidth, &scrHeight);
     glViewport(0, 0, scrWidth, scrHeight);
+    g_currentTextureIndex = (g_currentTextureIndex + 1) % texturePaths.size();
 }
 
 void ComputeBrightest(Shader& objShader)
@@ -503,18 +506,15 @@ void processInput(GLFWwindow *window, Shader& objShader)
     bool key1Pressed = glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS;
     if (key1Pressed && !key1PressedLastFrame)
     {
-        std::cout << "enter 1" << std::endl;
-        GenerateIrradianceMap(window, 0, objShader);
+        if (texturePaths.empty())
+        {
+            std::cerr << "No skybox paths found" << std::endl;
+            return;
+        }
+        std::cout << "enter index: " << g_currentTextureIndex << std::endl;
+        GenerateIrradianceMap(window, g_currentTextureIndex, objShader);
     }
     key1PressedLastFrame = key1Pressed;
-
-    bool key2Pressed = glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS;
-    if (key2Pressed && !key2PressedLastFrame)
-    {
-        std::cout << "enter 2" << std::endl;
-        GenerateIrradianceMap(window, 1, objShader);
-    }
-    key2PressedLastFrame = key2Pressed;
 }
 
 
