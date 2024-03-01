@@ -1,9 +1,9 @@
 cmake_minimum_required (VERSION 3.0)
 cmake_policy(VERSION 3.0)
 
-project(SkyboxDemo)
+project(SkyboxDemoTest)
 
-set(CMAKE_CXX_STANDARD 17) # this does nothing for MSVC, use target_compile_options below
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS ON)
 
@@ -19,7 +19,6 @@ endif(WIN32)
 
 link_directories(${CMAKE_SOURCE_DIR}/lib)
 
-# find the required packages
 find_package(GLM REQUIRED)
 message(STATUS "GLM included at ${GLM_INCLUDE_DIR}")
 find_package(GLFW3 REQUIRED)
@@ -32,138 +31,99 @@ if(APPLE)
 endif(APPLE)
 
 if(WIN32)
-  set(LIBS glfw3 opengl32 assimp freetype irrKlang)
-  add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+    set(LIBS glfw3 opengl32 assimp freetype irrKlang)
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 elseif(UNIX AND NOT APPLE)
-  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
-  find_package(OpenGL REQUIRED)
-  add_definitions(${OPENGL_DEFINITIONS})
-  find_package(X11 REQUIRED)
-  # note that the order is important for setting the libs
-  # use pkg-config --libs $(pkg-config --print-requires --print-requires-private glfw3) in a terminal to confirm
-  set(LIBS ${GLFW3_LIBRARY} X11 Xrandr Xinerama Xi Xxf86vm Xcursor GL dl pthread freetype ${ASSIMP_LIBRARY})
-  set (CMAKE_CXX_LINK_EXECUTABLE "${CMAKE_CXX_LINK_EXECUTABLE} -ldl")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
+    find_package(OpenGL REQUIRED)
+    add_definitions(${OPENGL_DEFINITIONS})
+    find_package(X11 REQUIRED)
+    # note that the order is important for setting the libs
+    # use pkg-config --libs $(pkg-config --print-requires --print-requires-private glfw3) in a terminal to confirm
+    set(LIBS ${GLFW3_LIBRARY} X11 Xrandr Xinerama Xi Xxf86vm Xcursor GL dl pthread freetype ${ASSIMP_LIBRARY})
+    set (CMAKE_CXX_LINK_EXECUTABLE "${CMAKE_CXX_LINK_EXECUTABLE} -ldl")
 elseif(APPLE)
-  INCLUDE_DIRECTORIES(/System/Library/Frameworks)
-  FIND_LIBRARY(COCOA_LIBRARY Cocoa)
-  FIND_LIBRARY(OpenGL_LIBRARY OpenGL)
-  FIND_LIBRARY(IOKit_LIBRARY IOKit)
-  FIND_LIBRARY(CoreVideo_LIBRARY CoreVideo)
-  MARK_AS_ADVANCED(COCOA_LIBRARY OpenGL_LIBRARY)
-  SET(APPLE_LIBS ${COCOA_LIBRARY} ${IOKit_LIBRARY} ${OpenGL_LIBRARY} ${CoreVideo_LIBRARY})
-  SET(APPLE_LIBS ${APPLE_LIBS} ${GLFW3_LIBRARY} ${ASSIMP_LIBRARY} ${FREETYPE_LIBRARIES})
-  set(LIBS ${LIBS} ${APPLE_LIBS})
+    INCLUDE_DIRECTORIES(/System/Library/Frameworks)
+    FIND_LIBRARY(COCOA_LIBRARY Cocoa)
+    FIND_LIBRARY(OpenGL_LIBRARY OpenGL)
+    FIND_LIBRARY(IOKit_LIBRARY IOKit)
+    FIND_LIBRARY(CoreVideo_LIBRARY CoreVideo)
+    MARK_AS_ADVANCED(COCOA_LIBRARY OpenGL_LIBRARY)
+    SET(APPLE_LIBS ${COCOA_LIBRARY} ${IOKit_LIBRARY} ${OpenGL_LIBRARY} ${CoreVideo_LIBRARY})
+    SET(APPLE_LIBS ${APPLE_LIBS} ${GLFW3_LIBRARY} ${ASSIMP_LIBRARY} ${FREETYPE_LIBRARIES})
+    set(LIBS ${LIBS} ${APPLE_LIBS})
 else()
-  set(LIBS )
+    set(LIBS )
 endif(WIN32)
-
-set(CHAPTERS
-    1.getting_started
-    2.lighting
-    3.model_loading
-    4.advanced_opengl
-    5.advanced_lighting
-    6.pbr
-    7.in_practice
-)
-
-
-set(6.pbr
-    #1.1.lighting
-    #1.2.lighting_textured
-    #2.1.1.ibl_irradiance_conversion
-    2.1.2.ibl_irradiance
-    #2.2.1.ibl_specular
-    #2.2.2.ibl_specular_textured
-)
-
 
 configure_file(configuration/root_directory.h.in configuration/root_directory.h)
 include_directories(${CMAKE_BINARY_DIR}/configuration)
+include_directories(${CMAKE_SOURCE_DIR}/includes)
 
-# first create relevant static libraries required for other projects
 add_library(STB_IMAGE "src/stb_image.cpp")
-set(LIBS ${LIBS} STB_IMAGE)
-
 add_library(GLAD "src/glad.c")
-set(LIBS ${LIBS} GLAD)
+set(LIBS ${LIBS} STB_IMAGE GLAD)
+
+
+# ${chapter}
+# 6.pbr
+
+# ${demo}
+# 2.1.2.ibl_irradiance
+
+# ${NAME}
+# SkyboxDemoTest
+
+file(GLOB SOURCE
+    "src/6.pbr/2.1.2.ibl_irradiance/*.h"
+    "src/6.pbr/2.1.2.ibl_irradiance/*.cpp"
+    "src/6.pbr/2.1.2.ibl_irradiance/*.vs"
+    "src/6.pbr/2.1.2.ibl_irradiance/*.fs"
+    "src/6.pbr/2.1.2.ibl_irradiance/*.compute"
+)
+add_executable(SkyboxDemoTest ${SOURCE})
+target_link_libraries(SkyboxDemoTest ${LIBS})
+
+if(MSVC)
+	target_compile_options(SkyboxDemoTest PRIVATE /std:c++17 /MP)
+    target_link_options(SkyboxDemoTest PUBLIC /ignore:4099)
+endif(MSVC)
+
+if(WIN32)
+    set_target_properties(SkyboxDemoTest PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/6.pbr")
+    set_target_properties(SkyboxDemoTest PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/6.pbr/Debug")
+elseif(UNIX AND NOT APPLE)
+    set_target_properties(SkyboxDemoTest PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/6.pbr")
+elseif(APPLE)
+    set_target_properties(SkyboxDemoTest PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/6.pbr")
+    set_target_properties(SkyboxDemoTest PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_SOURCE_DIR}/bin/6.pbr")
+    set_target_properties(SkyboxDemoTest PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/bin/6.pbr")
+endif(WIN32)
+
+file(GLOB SHADERS
+    "src/6.pbr/2.1.2.ibl_irradiance/*.vs"
+    "src/6.pbr/2.1.2.ibl_irradiance/*.fs"
+    "src/6.pbr/2.1.2.ibl_irradiance/*.compute"
+)
+
+file(GLOB DLLS "dlls/*.dll")
 
 macro(makeLink src dest target)
-  add_custom_command(TARGET ${target} POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink ${src} ${dest}  DEPENDS  ${dest} COMMENT "mklink ${src} -> ${dest}")
+    add_custom_command(TARGET ${target} POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink ${src} ${dest}  DEPENDS  ${dest} COMMENT "mklink ${src} -> ${dest}")
 endmacro()
 
-function(create_project_from_sources chapter demo)
-	file(GLOB SOURCE
-            "src/${chapter}/${demo}/*.h"
-            "src/${chapter}/${demo}/*.cpp"
-            "src/${chapter}/${demo}/*.vs"
-            "src/${chapter}/${demo}/*.fs"
-            "src/${chapter}/${demo}/*.tcs"
-            "src/${chapter}/${demo}/*.tes"
-            "src/${chapter}/${demo}/*.gs"
-            "src/${chapter}/${demo}/*.cs"
-            "src/${chapter}/${demo}/*.compute"
-    )
-	if (demo STREQUAL "")
-		SET(replaced "")
-		string(REPLACE "/" "_" replaced ${chapter})
-		set(NAME ${replaced})
-	else()
-		set(NAME "${chapter}__${demo}")
-	endif()
-    add_executable(${NAME} ${SOURCE})
-    target_link_libraries(${NAME} ${LIBS})
-    if(MSVC)
-		target_compile_options(${NAME} PRIVATE /std:c++17 /MP)
-        target_link_options(${NAME} PUBLIC /ignore:4099)
-    endif(MSVC)
+foreach(SHADER ${SHADERS})
     if(WIN32)
-        set_target_properties(${NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/${chapter}")
-        set_target_properties(${NAME} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/${chapter}/Debug")
+        add_custom_command(TARGET SkyboxDemoTest PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${SHADER} $<TARGET_FILE_DIR:SkyboxDemoTest>)
+		add_custom_command(TARGET SkyboxDemoTest PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${DLLS} $<TARGET_FILE_DIR:SkyboxDemoTest>)
     elseif(UNIX AND NOT APPLE)
-        set_target_properties(${NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/${chapter}")
+        file(COPY ${SHADER} DESTINATION ${CMAKE_SOURCE_DIR}/bin/6.pbr)
     elseif(APPLE)
-        set_target_properties(${NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/${chapter}")
-        set_target_properties(${NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_SOURCE_DIR}/bin/${chapter}")
-        set_target_properties(${NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/bin/${chapter}")
+        get_filename_component(SHADERNAME ${SHADER} NAME)
+        makeLink(${SHADER} ${CMAKE_SOURCE_DIR}/bin/6.pbr/${SHADERNAME} SkyboxDemoTest)
     endif(WIN32)
-    # copy shader files to build directory
-    file(GLOB SHADERS
-             "src/${chapter}/${demo}/*.vs"
-             # "src/${chapter}/${demo}/*.frag"
-             "src/${chapter}/${demo}/*.fs"
-             "src/${chapter}/${demo}/*.tcs"
-             "src/${chapter}/${demo}/*.tes"
-             "src/${chapter}/${demo}/*.gs"
-             "src/${chapter}/${demo}/*.cs"
-             "src/${chapter}/${demo}/*.compute"
-    )
-	# copy dlls
-	file(GLOB DLLS "dlls/*.dll")
-    foreach(SHADER ${SHADERS})
-        if(WIN32)
-            # configure_file(${SHADER} "test")
-            add_custom_command(TARGET ${NAME} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${SHADER} $<TARGET_FILE_DIR:${NAME}>)
-			add_custom_command(TARGET ${NAME} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${DLLS} $<TARGET_FILE_DIR:${NAME}>)
-        elseif(UNIX AND NOT APPLE)
-            file(COPY ${SHADER} DESTINATION ${CMAKE_SOURCE_DIR}/bin/${chapter})
-        elseif(APPLE)
-            # create symbolic link for *.vs *.fs *.gs
-            get_filename_component(SHADERNAME ${SHADER} NAME)
-            makeLink(${SHADER} ${CMAKE_SOURCE_DIR}/bin/${chapter}/${SHADERNAME} ${NAME})
-        endif(WIN32)
-    endforeach(SHADER)
-    # if compiling for visual studio, also use configure file for each project (specifically to set up working directory)
-    if(MSVC)
-        configure_file(${CMAKE_SOURCE_DIR}/configuration/visualstudio.vcxproj.user.in ${CMAKE_CURRENT_BINARY_DIR}/${NAME}.vcxproj.user @ONLY)
-    endif(MSVC)
-endfunction()
+endforeach(SHADER)
 
-# then create a project file per tutorial
-foreach(CHAPTER ${CHAPTERS})
-    foreach(DEMO ${${CHAPTER}})
-		create_project_from_sources(${CHAPTER} ${DEMO})
-    endforeach(DEMO)
-endforeach(CHAPTER)
-
-include_directories(${CMAKE_SOURCE_DIR}/includes)
+if(MSVC)
+    configure_file(${CMAKE_SOURCE_DIR}/configuration/visualstudio.vcxproj.user.in ${CMAKE_CURRENT_BINARY_DIR}/SkyboxDemoTest.vcxproj.user @ONLY)
+endif(MSVC)
