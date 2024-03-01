@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 3.0)
 cmake_policy(VERSION 3.0)
 
-project(SkyboxDemoTest)
+project(SkyboxDemo)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -55,16 +55,6 @@ add_library(STB_IMAGE "src/stb_image.cpp")
 add_library(GLAD "src/glad.c")
 set(LIBS ${LIBS} STB_IMAGE GLAD)
 
-
-# ${chapter}
-# 6.pbr
-
-# ${demo}
-# 2.1.2.ibl_irradiance
-
-# ${NAME}
-# SkyboxDemoTest
-
 file(GLOB SOURCE
     "src/skyboxDemo/*.h"
     "src/skyboxDemo/*.cpp"
@@ -72,20 +62,20 @@ file(GLOB SOURCE
     "src/skyboxDemo/*.fs"
     "src/skyboxDemo/*.compute"
 )
-add_executable(SkyboxDemoTest ${SOURCE})
-target_link_libraries(SkyboxDemoTest ${LIBS})
+add_executable(SkyboxDemo ${SOURCE})
+target_link_libraries(SkyboxDemo ${LIBS})
 
 if(MSVC)
-	target_compile_options(SkyboxDemoTest PRIVATE /std:c++17 /MP)
-    target_link_options(SkyboxDemoTest PUBLIC /ignore:4099)
+	target_compile_options(SkyboxDemo PRIVATE /std:c++17 /MP)
+    target_link_options(SkyboxDemo PUBLIC /ignore:4099)
 endif(MSVC)
 
-set_target_properties(SkyboxDemoTest PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/6.pbr")
+set_target_properties(SkyboxDemo PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/6.pbr")
 if(WIN32)
-    set_target_properties(SkyboxDemoTest PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/6.pbr/Debug")
+    set_target_properties(SkyboxDemo PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/6.pbr/Debug")
 elseif(APPLE)
-    set_target_properties(SkyboxDemoTest PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_SOURCE_DIR}/bin/6.pbr")
-    set_target_properties(SkyboxDemoTest PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/bin/6.pbr")
+    set_target_properties(SkyboxDemo PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_SOURCE_DIR}/bin/6.pbr")
+    set_target_properties(SkyboxDemo PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/bin/6.pbr")
 endif(WIN32)
 
 file(GLOB SHADERS
@@ -102,14 +92,14 @@ endmacro()
 
 foreach(SHADER ${SHADERS})
     if(WIN32)
-        add_custom_command(TARGET SkyboxDemoTest PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${SHADER} $<TARGET_FILE_DIR:SkyboxDemoTest>)
-		add_custom_command(TARGET SkyboxDemoTest PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${DLLS} $<TARGET_FILE_DIR:SkyboxDemoTest>)
+        add_custom_command(TARGET SkyboxDemo PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${SHADER} $<TARGET_FILE_DIR:SkyboxDemo>)
+		add_custom_command(TARGET SkyboxDemo PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${DLLS} $<TARGET_FILE_DIR:SkyboxDemo>)
     elseif(APPLE)
         get_filename_component(SHADERNAME ${SHADER} NAME)
-        makeLink(${SHADER} ${CMAKE_SOURCE_DIR}/bin/6.pbr/${SHADERNAME} SkyboxDemoTest)
+        makeLink(${SHADER} ${CMAKE_SOURCE_DIR}/bin/6.pbr/${SHADERNAME} SkyboxDemo)
     endif(WIN32)
 endforeach(SHADER)
 
 if(MSVC)
-    configure_file(${CMAKE_SOURCE_DIR}/configuration/visualstudio.vcxproj.user.in ${CMAKE_CURRENT_BINARY_DIR}/SkyboxDemoTest.vcxproj.user @ONLY)
+    configure_file(${CMAKE_SOURCE_DIR}/configuration/visualstudio.vcxproj.user.in ${CMAKE_CURRENT_BINARY_DIR}/SkyboxDemo.vcxproj.user @ONLY)
 endif(MSVC)

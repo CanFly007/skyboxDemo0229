@@ -44,12 +44,6 @@ unsigned int envCubemap = -1;
 unsigned int prefilterMap = -1;
 unsigned int brdfLUTTexture = -1;
 
-//const std::string texturePaths[]
-//{
-//    "resources/textures/skybox/CloudyEx.jpg",
-//    "resources/textures/skybox/blackEx.jpg",
-//};
-
 std::vector<std::string> texturePaths;
 int g_currentTextureIndex = 0;
 
