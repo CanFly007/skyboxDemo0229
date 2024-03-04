@@ -26,6 +26,7 @@ void GeneratePrefilterMap();
 void renderQuad();
 void GenerateBRDFLUTTexture();
 void ComputeBrightest(Shader& objShader);
+void ComputeOtsuThreshold();
 
 const unsigned int SCR_WIDTH = 1280;
 const unsigned int SCR_HEIGHT = 720;
@@ -354,6 +355,7 @@ void GenerateIrradianceMap(GLFWwindow* window, int texID, Shader& objShader)
     GenerateBRDFLUTTexture();
 
     //ComputeBrightest(objShader);
+    //ComputeOtsuThreshold();
 
     int scrWidth, scrHeight;
     glfwGetFramebufferSize(window, &scrWidth, &scrHeight);
@@ -400,6 +402,36 @@ void ComputeBrightest(Shader& objShader)
     objShader.use();
     objShader.setVec3("lightPositions[0]", lightPosition);
     objShader.setVec3("lightColors[0]", lightColor);
+}
+
+void ComputeOtsuThreshold()
+{
+    Shader computeShader("find_brightest.compute");
+
+    computeShader.use();
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
+    computeShader.setInt("environmentMap", 0);
+
+    GLuint computeBO;
+    glGenBuffers(1, &computeBO);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, computeBO);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(glm::vec4) + sizeof(glm::vec3), NULL, GL_DYNAMIC_DRAW);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, computeBO);
+
+    // Cubemap size 512x512
+    glDispatchCompute(512 / 16, 512 / 16, 6);
+    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
+    float otsuThreshold;
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, computeBO);
+    void* ptr = glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY);
+    memcpy(&otsuThreshold, ptr, sizeof(float));
+    glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+
+    glDeleteBuffers(1, &computeBO);
+
+    std::cout << "Otsu Threshold: " << otsuThreshold << std::endl;
 }
 
 void GeneratePrefilterMap()
