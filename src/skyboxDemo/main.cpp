@@ -12,6 +12,7 @@
 #include <Utils/model.h>
 
 #include <iostream>
+#include <chrono>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -538,7 +539,11 @@ void processInput(GLFWwindow *window, Shader& objShader)
             return;
         }
         std::cout << "enter index: " << g_currentTextureIndex << std::endl;
+        auto start = std::chrono::high_resolution_clock::now();
         GenerateIrradianceMap(window, g_currentTextureIndex, objShader);
+        auto end = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double, std::milli> duration = end - start;
+        std::cout << "The total time consumed is: " << duration.count() << " ms\n";
     }
     key1PressedLastFrame = key1Pressed;
 }
