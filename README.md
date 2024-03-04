@@ -1,9 +1,10 @@
 # Skybox Demo
 ## Main Features
 - Real-Time Skybox Switching
-- PBR with metallic-roughness workflow
 - Near-Real-Time Image-Based Lighting Computation
 - Capture the color and direction of the brightest area
+- Ratio of clouds to sky through the threshold of image binarization
+- PBR with metallic-roughness workflow
 
 ## Setup
 ### Windows building
