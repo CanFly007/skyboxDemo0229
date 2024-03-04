@@ -1,6 +1,3 @@
-Skybox Demo
-Setup
-
 # Skybox Demo
 ## Setup
 Windows building
@@ -13,4 +10,6 @@ Mac building
 cmake -S . -B build -G Xcode
 ```
 
-![Example Image](http://url/to/image.jpg)
+![Example Image]([http://url/to/image.jpg](https://github.com/CanFly007/skyboxDemo0229/blob/master/resources/textures/output.png)https://github.com/CanFly007/skyboxDemo0229/blob/master/resources/textures/output.png)
+
+![Example Image]([http://url/to/image.jpg](https://github.com/CanFly007/skyboxDemo0229/blob/master/resources/textures/output.png)https://github.com/CanFly007/skyboxDemo0229/blob/master/resources/textures/output2.png)
